@@ -26,8 +26,8 @@ out vec4 out_color;
 
 void main() {
   // YOUR CODE HERE
-  
   // (Placeholder code. You will want to replace it.)
-  out_color = (vec4(1, 1, 1, 0) + v_normal) / 2;
-  out_color.a = 1;
+    vec3 r = u_light_pos - v_position.xyz;
+    out_color.xyz = 0.5 * (u_light_intensity / dot(r, r)) * max(0.0, dot(v_normal.xyz, r));
+    out_color.a = 1;
 }
