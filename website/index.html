@@ -25,17 +25,235 @@
 
 <h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2017</h1>
 <h1 align="middle">Project 4: Cloth Simulator</h1>
-<h2 align="middle">YOUR NAME, CS184-??</h2>
+<h2 align="middle">Jonathan Li, CS184-abr</h2>
 
 <br><br>
 
 <div>
 
 <h2 align="middle">Overview</h2>
-<p>Give a high-level overview of what you implemented in this project. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the project.</p>
+<p>In this project, we were able to imitate the realistic characterics of a cloth. By simulating the cloth, we could effectively apply physics and mathematical concepts to model the results of gravity, collisions, light, etc. The project really emphasized to me the multitude of factors to consider when simulating a simple falling piece of cloth. But once taken care of, we can arbitrarily change the characteristics of the cloth and environment to produce stunning results that may not even be realistically probable to replicate.</p>
 
 <h2 align="middle">Part I: Masses and springs</h2>
+<p> We built our basic grid with the structural, bending, and shear constraints to imitate a simple cloth mesh. We stored point masses in row order and then connect springs based on the constraints. We also included which point masses were pinned.</p>
+<table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/all.png" align="middle" width="400px"/>
+        <figcaption align="middle">All constraints</figcaption>
+      </td>
+      <td>
+        <img src="./images/noshear.png" align="middle" width="400px"/>
+        <figcaption align="middle">Without shear constraints</figcaption>
+      </td>
+    </tr>
+</table>
+<table>
+    <tr>
+      <td>
+        <img src="./images/shear.png" align="middle" width="400px"/>
+        <figcaption align="middle">Just shear constraints(structural and bending)</figcaption>
+      </td>
+      <td>
+        <img src="./images/pinned2.png" align="middle" width="400px"/>
+        <figcaption align="middle">Full view of mesh</figcaption>
+      </td>
+    </tr>
+</table>
+<h2 align="middle">Part 2: Simulation via Numerical Integration</h2>
+<p>In this section we incororated the total force vector from external forces on each point mass and used Verlet integration to update point mass positions accordingly to the spec. We also implemented constraints on position updates to prevent too drastic of results.</p>
+<table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/10ks.png" align="middle" width="400px"/>
+        <figcaption align="middle">We have a lot of rippling effects as it falls</figcaption>
+      </td>
+      <td>
+        <img src="./images/100000ks.png" align="middle" width="400px"/>
+        <figcaption align="middle">High ks shows very stiff motion across the cloth in fall</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="./images/0.1density.png" align="middle" width="400px"/>
+        <figcaption align="middle">With low density, we see an even fall at each cloth point between pins with less bounce back motion.</figcaption>
+      </td>
+      <td>
+        <img src="./images/100density.png" align="middle" width="400px"/>
+        <figcaption align="middle">With high density, we see the middle of the cloth between pins sink down more noticeably</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="./images/0.069damping.png" align="middle" width="400px"/>
+        <figcaption align="middle">With minimal damping, the cloth has little resistance as it falls which lets it swing backwards in almost 145 degrees.</figcaption>
+      </td>
+      <td>
+        <img src="./images/0.89damping.png" align="middle" width="400px"/>
+        <figcaption align="middle">With high damping, the rate of fall is greatly slowed and theres no swinging back and forth as it reaches resting state</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="./images/normal.png" align="middle" width="400px"/>
+        <figcaption align="middle">Default cloth settings</figcaption>
+      </td>
+      <td>
+        <img src="./images/pinned4resting.png" align="middle" width="400px"/>
+        <figcaption align="middle">Pinned4 resting state</figcaption>
+      </td>
+    </tr>
+  </table>
+  <h2 align="middle">Part 3: Handling Collisions with Other Objects</h2>
+<p>In this part of the project we implemented the sphere and plane effects so that if a point mass were to fall inside the object, we would instead render it at the tangent to the object using a correction vector.</p>
+<table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/sphere500.png" align="middle" width="400px"/>
+        <figcaption align="middle">500 N/m ks: the cloth droops down the most</figcaption>
+      </td>
+      <td>
+        <img src="./images/sphere5000.png" align="middle" width="400px"/>
+        <figcaption align="middle">5000 N/m ks: the cloth has more tension forces to become less stretchy</figcaption>
+      </td>
+    </tr>
+    <br>
+    <td>
+        <img src="./images/sphere50000.png" align="middle" width="400px"/>
+        <figcaption align="middle">50000 N/m ks: the cloth has the most stiffness</figcaption>
+    </td>
+    <td>
+        <img src="./images/plane.png" align="middle" width="400px"/>
+        <figcaption align="middle">Resting position on plane</figcaption>
+    </td>
+</table>
+<h2 align="middle">Part 4: Handling Self-Collisions</h2>
+<p>Now, we apply self collsions handling through spatial hashing. We created a unique hash pairing for the xyz coordinates after truncating them into box3D volumes. By grouping the point masses by their closeness together, we can thereafter apply repulsing forces for a faster handling of self-collisions than brute force</p>
+<table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/initial.png" align="middle" width="400px"/>
+        <figcaption align="middle">Large ripples as it contacts the plane</figcaption>
+      </td>
+      <td>
+        <img src="./images/self.png" align="middle" width="400px"/>
+        <figcaption align="middle">Folds on itself but doesn't clip itself</figcaption>
+      </td>
+    </tr>
+    <br>
+    <td>
+        <img src="./images/end.png" align="middle" width="400px"/>
+        <figcaption align="middle">Ends up in a resting position with minimal folds since the folds repulse itself into a better state</figcaption>
+    </td>
+    <td>
+        <img src="./images/oop.png" align="middle" width="400px"/>
+        <figcaption align="middle">With high 100 density and 50000 ks, the cloth has strong connecting forces in itself which creates very small ripples as it contacts the plane and folds.</figcaption>
+    </td>
+   </tr>
+   <tr>
+    <br>
+    <td>
+        <img src="./images/low.png" align="middle" width="400px"/>
+        <figcaption align="middle">With low 0.1 density and 1 ks, the cloth is super floppy and doesn't mind folds as much</figcaption>
+    </td>
+    <td>
+        <img src="./images/fold.png" align="middle" width="400px"/>
+        <figcaption align="middle">With low density and relatively normal 500 ks, the cloth is easy to push into folds but isn't too floppy that it doesn't come back together</figcaption>
+    </td>
+</tr>
+</table>
+<h2 align="middle">Part 5: Shaders</h2>
+<p>A shaders program consists of two parts: .vert and .frag files. Similar to project 1, the .vert file would map the vertices of the simulation to a frame using interpolation in which the .frag file would need to render the image in its final form. The vertex shader lies in the .vert file where vertices are transformed into their final position. Fragment shaders lie in the .frag files where we have different groups of vertices, fragments, to compute a color. These two work together to create lighting and material effects by using the fragments to interpolate colors across the geometric groupings.</p>
+<table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/ambient.png" align="middle" width="400px"/>
+        <figcaption align="middle">Ambient</figcaption>
+      </td>
+      <td>
+        <img src="./images/diffuse.png" align="middle" width="400px"/>
+        <figcaption align="middle">Diffuse</figcaption>
+      </td>
+    </tr>
+    <br>
+    <td>
+        <img src="./images/specular.png" align="middle" width="400px"/>
+        <figcaption align="middle">Specular</figcaption>
+    </td>
+    <td>
+        <img src="./images/phong.png" align="middle" width="400px"/>
+        <figcaption align="middle">Full Blinn-Phong</figcaption>
+    </td>
+   </tr>
+</tr>
+</table>
 
+<p> The Blinn-Phong shading model overlaps the ambient lighting, diffuse lighting, and ambient lighting to create a realistic shading over an object. These three terms are linearly combined to create the Blinn-Phong equation in the spec. </p>
+<table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/texture.png" align="middle" width="400px"/>
+        <figcaption align="middle">Textured mapping</figcaption>
+      </td>
+      <td>
+        <img src="./images/orig.png" align="middle" width="400px"/>
+        <figcaption align="middle">Original Image</figcaption>
+      </td>
+    </tr>
+</table>
+<table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/bumpsphere.png" align="middle" width="400px"/>
+        <figcaption align="middle">Bump</figcaption>
+      </td>
+      <td>
+        <img src="./images/bumpcloth.png" align="middle" width="400px"/>
+        <figcaption align="middle">Bump</figcaption>
+      </td>
+    </tr>
+    <br>
+    <td>
+        <img src="./images/displacesphere.png" align="middle" width="400px"/>
+        <figcaption align="middle">Displacement</figcaption>
+    </td>
+    <td>
+        <img src="./images/displacement.png" align="middle" width="400px"/>
+        <figcaption align="middle">Displacement</figcaption>
+    </td>
+   </tr>
+</table>
+<p> In comparing Bump and Displacement Shading, They use the same vertex shader and differ only in the fragment shader. This because the displacement shader requires a more complex geometric positioning of the fragments to produce the specific textured qualities. In the results, the bump only shows a colored sphere, but the displacement shader demonstrates a more complex shape with ridges.</p>
 
+<p> Comparing the 16 coarse images to the 128 coarse images above, the higher coarseness appear more accurate and sharper in detail.</p>
+<table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/16bump.png" align="middle" width="400px"/>
+        <figcaption align="middle">16 Bump Coarseness</figcaption>
+      </td>
+      <td>
+        <img src="./images/16displacement.png" align="middle" width="400px"/>
+        <figcaption align="middle">16 Displacement Coarseness</figcaption>
+      </td>
+    </tr>
+</table>
+<table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/mirrorsphere.png" align="middle" width="400px"/>
+        <figcaption align="middle">Mirrored Sphere</figcaption>
+      </td>
+      <td>
+        <img src="./images/mirrorcloth.png" align="middle" width="400px"/>
+        <figcaption align="middle">Mirrored Cloth</figcaption>
+      </td>
+    </tr>
+</table>
+
+</div>
 </body>
 </html>
